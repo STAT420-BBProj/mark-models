@@ -1,0 +1,172 @@
+---
+title: "Project Proposal  - Does Money Buy You A Winning Major League Baseball Team"
+author: "Mark Berman, Joel Kopp, Richard Wheeler"
+date: "July 11, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Project Title#
+
+Does Money Buy You  A Winning Major League Baseball Team? - A Multi-Variable Linear Regression Analysis Of The Predictors That Explain The Winning Records Of Major League Baseball Teams
+
+#Rationale for the Project#
+
+Convential wisdom is that money buys happiness (winning) in Major League Baseball.  However, the advent of "Moneyball" in the early 2000s by the Oakland Athletics, Cleveland Indians and other teams has lead to a more analytical approach to detemining the make-up of Major League rosters.  
+
+The purpose of this study is determine how much impact salary has on the winning record of Major League baseball teams.  We will create a baseline SLR model that uses *annual wins* as the response variable and *total team salary* as the predictor.  From there we will explore other MLR models that both include and exclude *total team salary* in combination with other predictors.  We will select a final group of candidate models that generalize well and are explainable.  We will validate these candidate models against a test dataset and select the best model on the basis *test RMSE*.  
+
+
+#Project Team Members#
+
+- Mark Berman (markcb2)
+- Joel Kopp (Joelk2)
+- Richard Wheeler (rw6)
+
+#Description of the Dataset
+
+Our source of data is the Sean Latham baseball archive (http://www.seanlahman.com/baseball-archive/), recognized by the *Society for American Baseball Research* (SABR) as the leading archive detailed player and team data from 1874 through the end of the 2017 Major League Baseball season.  We will use team statistics from the years 2000 through 2013 as training dataset and use data from 2014 through 2016 as the test dataset.  (We are joining multiple datasets together from this archive and one the datasets has complete data through the end of the 2016 season.  As such, we are not able to include the 2017 season as part of this study.)
+
+The primary dataset is the *Teams* dataset.  It contains the majority of the hitting, pitching and fielding predictors that we will incorporate into our model.
+
+We will combine the *Teams* dataset with other hitting predictors and *total team salary* from the *Salaries* and *Batting* data sets, respectively.  The *Salaries* and *Batting* datasets are at the player level.  We will roll up these statistics to the team level for each year of the study and then join them to the *Teams* dataset. 
+
+A partial listing of attributes that comprise the *Teams*, *Salaries* and *Batting* datasets are shown below.
+
+##Teams Dataset##
+
+- yearID         Year
+- lgID           League
+- teamID         Team
+- franchID       Franchise (links to TeamsFranchise table)
+- divID          Team's division
+- Rank           Position in final standings
+- G              Games played
+- GHome          Games played at home
+- W              *Wins  (Response Variable)*
+- L              Losses
+- DivWin         Division Winner (Y or N)
+- WCWin          Wild Card Winner (Y or N)
+- LgWin          League Champion(Y or N)
+- WSWin          World Series Winner (Y or N)
+- R              Runs scored
+- AB             At bats
+- H              Hits by batters
+- 2B             Doubles
+- 3B             Triples
+- HR             Homeruns by batters
+- BB             Walks by batters
+- SO             Strikeouts by batters
+- SB             Stolen bases
+- CS             Caught stealing
+- HBP            Batters hit by pitch
+- SF             Sacrifice flies
+- RA             Opponents runs scored
+- ER             Earned runs allowed
+- ERA            Earned run average
+- CG             Complete games
+- SHO            Shutouts
+- SV             Saves
+- IPOuts         Outs Pitched (innings pitched x 3)
+- HA             Hits allowed
+- HRA            Homeruns allowed
+- BBA            Walks allowed
+- SOA            Strikeouts by pitchers
+- E              Errors
+- DP             Double Plays
+- FP             Fielding  percentage
+- name           Team's full name
+- park           Name of team's home ballpark
+- attendance     Home attendance total
+- BPF            Three-year park factor for batters
+- PPF            Three-year park factor for pitchers
+
+
+##Salaries Dataset#
+
+- yearID         Year
+- teamID         Team
+- lgID           League
+- playerID       Player ID code
+- salary         Salary (U.S Dollars Not Adjusted For Inflation)
+
+
+##Batting Dataset##
+
+- playerID       Player ID code
+- yearID         Year
+- stint          player's stint (order of appearances within a season)
+- teamID         Team
+- lgID           League
+- G              Games
+- AB             At Bats
+- R              Runs
+- H              Hits
+- 2B             Doubles
+- 3B             Triples
+- HR             Homeruns
+- RBI            Runs Batted In
+- SB             Stolen Bases
+- CS             Caught Stealing
+- BB             Base on Balls
+- SO             Strikeouts
+- IBB            Intentional walks
+- HBP            Hit by pitch
+- SH             Sacrifice hits
+- SF             Sacrifice flies
+- GIDP           Grounded into double plays
+
+
+We also will incorporate the following additional predictors into the *combined* dataset as they are recognized by Major League Baseball executive and analyst as being important in assessing the value of player performance.  Each of these additional predictors are derived from other predictors in the *combined* dataset.
+
+- TB (Total Bases):  (1* singles) + (2 *doubles) + (3 * triples) + (4 * home runs)
+- SLG (slugging percentage): total bases divided by at bats
+- OBP (on base percentage): total number of times a batter reaches base divided by at bats (not including sacrifice bunts or defensive interference).
+- OPS (On Base Percentage Plus Slugging Percetage):  on-base percentage + slugging percentage)
+
+
+#Statement of Personal Interest In This Study#
+
+We are passionate followers of baseball and are fans of our respective small market teams.
+
+- Minnesota Twins
+- Milwaukee Brewers
+- Cincinatti Reds
+
+The hope is that a winning record is more nuanced than "*total team salary* being the primary driver to a team's ability to post a winning record.  If it turns out team salary is the primary driver behind fielding a winning baseball team, we will be disappointed as fans of our favorite home town "nine".  If it turns out that other predictors significantly influence a team's winning record, then hope springs eternal that the executives that run our favorite teams will choose wisely when drafting major league talent.
+
+#Evidence that the Data Can Be Loaded Into R#
+
+##Example of Teams Dataset Loaded Into R##
+
+The *W* data field represents *Wins* and is the response variable.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+Teams <- read_csv("Teams.csv")
+Teams <- Teams[order(Teams$yearID, Teams$teamID,decreasing = TRUE),] 
+head(Teams, n=10)
+```
+
+##Example of Salaries Dataset Loaded Into R##
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+Salaries <- read_csv("Salaries.csv")
+Salaries <- Salaries[order(Salaries$yearID, Salaries$teamID,decreasing = TRUE),] 
+head(Salaries, n=10)
+```
+ 
+##Example of Batting Dataset Loaded Into R##
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+Batting <- read_csv("Batting.csv")
+Batting <- Batting[order(Batting$yearID, Batting$teamID,decreasing = TRUE),] 
+head(Batting, n=10)
+```
+
+
+
