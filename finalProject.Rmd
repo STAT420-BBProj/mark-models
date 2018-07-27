@@ -26,7 +26,7 @@ plot_predicted_wins_versus_actual_wins <- function(model_name, predicted_wins, a
   xrange <- c(0,max(actual_wins+10))
   yrange <- c(0,max(predicted_wins+10))
   title <- paste(model_name, " : 2014 - 2016 Baseball Seasons")
-  sub <- paste("Average Percent Error: ", round(avg_pct_error,2))
+  sub <- paste("Average Percent Error: ", round(avg_pct_error,2), " %")
   plot(predicted_wins ~ actual_wins, pch = 20, col = "grey", cex = 1.5, xlab = "Actual Wins", ylab = "Predicted Wins", main= title, sub=sub, xlim=xrange, ylim=yrange)
   abline(a = 0, b = 1, col = "darkorange")
 }
@@ -90,6 +90,7 @@ bbproj_tst$franchID <- as.factor(bbproj_tst$franchID)
 bbproj_tst$park <- as.factor(bbproj_tst$park)
 ```
 ## Introduction ##
+
 
 
 ## Salary as the Single Predictor of Wins
